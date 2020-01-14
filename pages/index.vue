@@ -1,6 +1,11 @@
+
 <template>
   <v-container>
+    {{ fileContents }}
+    {{ commandsInAll }}
+    ID: {{ id }}
     <v-slider
+      thumb-label
       v-model="id"
       :max="this.liveData !== null ? this.liveData.data.length - 1 : 0"
     ></v-slider>
@@ -19,7 +24,7 @@
     <h3>
       <!-- <prism
         class="line-numbers"
-        :language="selectFileType"
+        :language="selectFileLang"
         :code="showFileContent"
       /> -->
       <!-- <pre><code>{{ showFileContent }}</code></pre> -->
@@ -39,6 +44,7 @@
   padding: 1em;
   color: #abb2bf;
   background: #282c34;
+  font-size: 1.5em;
 }
 </style>
 
@@ -59,9 +65,8 @@ export default {
   data() {
     return {
       selectFile: 0,
-      selectFileType: "markup",
       id: 0,
-      fileContent: ""
+      fileContents: {}
     };
   },
   mounted() {
@@ -71,6 +76,38 @@ export default {
     // console.log(abc);
   },
   computed: {
+    allFileContents: function() {
+      let allFileContents = [];
+      if (this.liveData === null || this.liveData.data[this.id] === undefined) {
+        return "";
+      }
+      for (let i = 0; i < this.liveData.data.length; i++) {
+        const element = this.liveData.data[i];
+        allFileContents.push(element);
+        // console.log(element);
+      }
+      return allFileContents;
+    },
+    commandsInAll: function() {
+      let commandsInAll = {};
+      for (let id = 0; id < this.allFileContents.length; id++) {
+        const element = this.allFileContents[id];
+        const files = element.files;
+        for (const [path, code] of Object.entries(files)) {
+          const lang = this.judgeFileLang(path);
+          const command = this.getCommands(this.commandsList, lang, code);
+          if (command === null) {
+            continue;
+          }
+          commandsInAll[id] = command;
+        }
+        // console.log(files);
+      }
+      return commandsInAll;
+    },
+    commandsList: function() {
+      return ["content"];
+    },
     fileList: function() {
       if (this.liveData === null || this.liveData.data[this.id] === undefined) {
         return "";
@@ -97,24 +134,28 @@ export default {
         return "";
       }
 
-      // console.log(this.fileList, this.selectFile);
-      let splitDot = this.fileList[this.selectFile].split(".");
-      if (splitDot.length === 1) {
-        this.selectFileType = "plaintext";
-      } else {
-        let fileExtention = splitDot[splitDot.length - 1].toLowerCase();
-        if (fileExtention === "py") {
-          this.selectFileType = "python";
-        } else {
-          this.selectFileType = "plaintext";
-        }
-      }
-      const fileContent = this.liveData.data[this.id].files[
-        this.fileList[this.selectFile]
-      ];
+      const path = this.fileList[this.selectFile];
 
-      const highlighted = hljs.highlight(this.selectFileType, fileContent)
-        .value;
+      const lang = this.judgeFileLang(path);
+
+      for (const [key, value] of Object.entries(
+        this.liveData.data[this.id].files
+      )) {
+        this.fileContents[key] = value;
+      }
+      const fileContent = this.fileContents[this.fileList[this.selectFile]];
+
+      // let commands = this.getCommands(
+      //   this.commandsList,
+      //   this.selectFileLang,
+      //   fileContent
+      // );
+
+      // if (commands !== null) {
+      //   // console.log(777)
+      // }
+
+      const highlighted = hljs.highlight(lang, fileContent).value;
       return highlighted;
     },
     showCUIContent: function() {
@@ -145,21 +186,26 @@ export default {
     })
   },
   created() {
-    // marked.setOptions({
-    //   // code要素にdefaultで付くlangage-を削除
-    //   langPrefix: "",
-    //   // highlightjsを使用したハイライト処理を追加
-    //   highlight: function(code, lang) {
-    //     return hljs.highlightAuto(code, [lang]).value;
-    //   }
-    // });
-    this.$store.dispatch("liveStore/getLiveData", {});
+    this.getLiveData();
   },
   methods: {
     getLiveData() {
       this.$store.dispatch("liveStore/getLiveData", {
         // id: this.id
       });
+    },
+    judgeFileLang(path) {
+      let splitDot = path.split(".");
+      if (splitDot.length === 1) {
+        return "plaintext";
+      } else {
+        let fileExtention = splitDot[splitDot.length - 1].toLowerCase();
+        if (fileExtention === "py") {
+          return "python";
+        } else {
+          return "plaintext";
+        }
+      }
     },
     play() {
       // setInterval(() => {
@@ -171,6 +217,63 @@ export default {
       //     this.id = 1;
       //   }
       // }, 500);
+    },
+    getCommands(commnadsList, lang, code) {
+      const splitCode = code.split("\n");
+
+      let commentMark = "";
+      if (lang === "python" || lang === "bash") {
+        commentMark = "#";
+      } else if (lang === "javascript" || lang === "go" || lang === "c") {
+        commentMark = "//";
+      } else if (lang === "html") {
+        commentMark = "<!--";
+      } else {
+        return null;
+      }
+
+      const commandMark = commentMark + "@";
+
+      let commandsObject = {};
+
+      let haveCommand = false;
+      for (let i = 0; i < commnadsList.length; i++) {
+        const command = commnadsList[i];
+        commandsObject[command] = "";
+      }
+
+      for (let i = 0; i < splitCode.length; i++) {
+        const line = splitCode[i];
+        if (line.indexOf(commandMark) !== -1) {
+          const splitCommand = line.split(commandMark);
+          if (splitCommand.length !== 2) {
+            //   console.log(111)
+            continue;
+          }
+
+          try {
+            commands = JSON.parse(splitCommand[1]);
+          } catch {
+            //   console.log(222)
+            continue;
+          }
+
+          // console.log(commands)
+          for (const [key, value] of Object.entries(commands)) {
+            // 存在する
+            if (Object.keys(commandsObject).indexOf(key) >= 0) {
+              commandsObject[key] = value;
+              haveCommand = true;
+            }
+          }
+        }
+      }
+
+      if (haveCommand === false) {
+        return null;
+      }
+
+      return commandsObject;
     },
     ...mapActions({
       // updateExcelType: "questionStore/updateExcelType"

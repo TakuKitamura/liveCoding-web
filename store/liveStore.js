@@ -16,7 +16,7 @@ export const actions = {
   async getLiveData(action, {
     id
   }) {
-    console.log(222);
+    // console.log(222);
     const getLiveDataEndpoint =
       process.env.scheme +
       process.env.host +
