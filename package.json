@@ -15,7 +15,6 @@
     "@nuxtjs/axios": "^5.9.0",
     "cookie-universal-nuxt": "^2.1.0",
     "highlight.js": "^9.17.1",
-    "highlightjs-line-numbers.js": "^2.7.0",
     "nuxt": "^2.0.0"
   },
   "devDependencies": {

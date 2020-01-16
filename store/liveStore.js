@@ -1,14 +1,19 @@
 import axios from "axios";
 
 const GET_LIVE_DATA = "get_live_data"
+const GET_LIVE_LIST_DATA = "get_live_list_data"
 
 export const state = () => ({
-  liveData: null
+  liveData: null,
+  liveListData: null
 });
 
 export const mutations = {
   [GET_LIVE_DATA](state, liveData) {
     state.liveData = liveData;
+  },
+  [GET_LIVE_LIST_DATA](state, liveListData) {
+    state.liveListData = liveListData;
   }
 };
 
@@ -27,7 +32,7 @@ export const actions = {
     try {
       let getLiveDataResponse = await axios.post(
         getLiveDataEndpoint, {
-          id: id
+          projectPath: "/Users/kitamurataku/work/liveCoding-capture/hello"
         }, {
           headers: {
             "Content-Type": "application/json"
@@ -35,9 +40,32 @@ export const actions = {
         }
       );
       action.commit(GET_LIVE_DATA, getLiveDataResponse);
-    } catch {
-      console.log("don't have data")
-      action.commit(GET_LIVE_DATA, null);
+    } catch (err){
+      console.log(err, 111)
+    }
+  },
+  async getLiveListData(action, {
+    projectPath
+  }) {
+    // console.log(222);
+    const getLiveListDataEndpoint =
+      process.env.scheme +
+      process.env.host +
+      ":" +
+      process.env.apiPort +
+      "/api/liveList";
+
+    try {
+      let getLiveListDataResponse = await axios.get(
+        getLiveListDataEndpoint, {
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+      action.commit(GET_LIVE_LIST_DATA, getLiveListDataResponse);
+    } catch (err) {
+      console.log(err, 222)
     }
   },
 };

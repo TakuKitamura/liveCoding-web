@@ -2,6 +2,8 @@ import colors from "vuetify/es5/util/colors";
 import fs from "fs";
 
 const envSet = require("./config.js");
+const https = require("https")
+https.globalAgent.options.ca = fs.readFileSync("cert.pem")
 
 export default {
   env: {
