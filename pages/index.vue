@@ -188,12 +188,14 @@ import shell from "highlight.js/lib/languages/shell";
 import python from "highlight.js/lib/languages/python";
 import plaintext from "highlight.js/lib/languages/plaintext";
 import xml from "highlight.js/lib/languages/xml";
+import javascript from "highlight.js/lib/languages/javascript";
 import "highlight.js/styles/atom-one-dark.css";
 
 hljs.registerLanguage("shell", shell);
 hljs.registerLanguage("python", python);
 hljs.registerLanguage("plaintext", plaintext);
 hljs.registerLanguage("xml", xml);
+hljs.registerLanguage("javascript", javascript);
 
 export default {
   components: {},
