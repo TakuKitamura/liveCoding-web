@@ -27,20 +27,18 @@ export const actions = {
       process.env.host +
       ":" +
       process.env.apiPort +
-      "/api/live";
+      "/api/live?id=" + id;
 
     try {
       let getLiveDataResponse = await axios.post(
-        getLiveDataEndpoint, {
-          projectPath: "/Users/kitamurataku/work/liveCoding-capture/hello"
-        }, {
+        getLiveDataEndpoint, {}, {
           headers: {
             "Content-Type": "application/json"
           }
         }
       );
       action.commit(GET_LIVE_DATA, getLiveDataResponse);
-    } catch (err){
+    } catch (err) {
       console.log(err, 111)
     }
   },

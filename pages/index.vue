@@ -1,9 +1,6 @@
 <template>
-  <v-container>
-    <!-- {{ showLiveList }} -->
-    <br />
-    <!-- <div>目次: {{ this.commandsInAll[this.id] }}</div> -->
-    <h2>現在の見出し</h2>
+  <div style="margin: 1%">
+    <!-- <h1>現在の見出し</h1> -->
     <div v-for="(value, name) in this.commandsInAll[this.id]" v-bind:key="name">
       <span>
         <div v-if="value.content.length > 0">
@@ -12,21 +9,90 @@
         </div>
       </span>
     </div>
-    <v-slider
-      thumb-label
-      v-model="id"
-      :max="this.liveData !== null ? this.liveData.data.length - 1 : 0"
-    ></v-slider>
-    <v-btn @click="getLiveData()" depressed small>Play</v-btn>
-    <v-list-item-group v-model="selectFile" color="primary">
-      <v-list-item v-for="(item, index) in fileList" v-bind:key="index">
-        <v-list-item-content>
-          <v-list-item-title v-text="item"></v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-    </v-list-item-group>
 
-    <h2>{{ showFileTitle }}</h2>
+    <!-- <v-btn @click="getLiveData()" depressed small>Play</v-btn> -->
+    <div class="d-flex justify-space-between">
+      <v-list width="20%" class="ma-1" style="background:rgba(0,0,0,0.0)">
+        <v-subheader>{{ showProjectName.toUpperCase() }}</v-subheader>
+        <v-list-item-group v-model="selectFile" color="primary">
+          <v-list-item v-for="(item, index) in fileList" v-bind:key="index">
+            <v-list-item-content>
+              <v-list-item-title>
+                <!-- {{
+                item.split("/" + showProjectName + "/")[
+                  item.split("/" + showProjectName + "/").length - 1
+                ]
+              }} -->
+                {{ item.replace(showProjectName + "/", "") }}
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-item-group>
+      </v-list>
+      <span style="width:50%">
+        CODE
+        <pre class="ma-1"><code id="fileContent"
+      v-bind:file-content-line-number="this.selectFile === undefined ? '' : fileContentLineNumber" v-html="this.selectFile === undefined ? 'ファイル未選択': showFileContent"></code></pre>
+      </span>
+      <span style="width:30%">
+        CUI
+        <pre
+          class="ma-1"
+        ><code id="cuiContent" v-bind:cui-content-line-number="cuiContentLineNumber" v-html="showCUIContent"></code></pre>
+      </span>
+    </div>
+    <div v-html="$md.render(showREADME)"></div>
+    <div id="player">
+      <!-- <template v-slot:append> -->
+      <iframe
+        :hidden="isYouTubeHidden"
+        type="text/html"
+        width="640"
+        height="360"
+        src="https://www.youtube.com/embed/M7lc1UVf-VE"
+        frameborder="0"
+      ></iframe>
+      <div>
+        <v-btn
+          v-if="isYouTubeHidden === false"
+          @click="youTubeHidden()"
+          depressed
+          small
+          >動画を隠す</v-btn
+        >
+        <v-btn v-else @click="youTubeShow()" depressed small
+          >動画表示する</v-btn
+        >
+      </div>
+      <v-slider
+        v-model="id"
+        color="red accent-4"
+        track-color="grey lighten-1"
+        thumb-label="always"
+        dense
+        height="100"
+        thumb-size="30"
+        label="ID"
+        :max="this.liveData !== null ? this.liveData.data.length - 1 : 0"
+        ticks
+      >
+        <template v-slot:append>
+          <v-text-field
+            v-model="id"
+            class="mt-0 pt-0"
+            hide-details
+            single-line
+            type="number"
+            style="width: 80px; font-size:1.5em"
+            background-color="blue-grey lighten-4"
+            outlined
+            dense
+          ></v-text-field>
+        </template>
+      </v-slider>
+    </div>
+
+    <!-- <h2>{{ showFiconstitle }}</h2>
     <h3>
       <pre><code id="fileContent" v-bind:file-content-line-number="fileContentLineNumber" v-html="showFileContent"></code></pre>
     </h3>
@@ -34,40 +100,37 @@
     <h3>
       <pre><code id="cuiContent" v-bind:cui-content-line-number="cuiContentLineNumber" v-html="showCUIContent"></code></pre>
     </h3>
-    {{ this.liveData }}
-    <!-- <div>ID: {{ id }}</div>
-    <div>目次: {{ this.commandsInAll }}</div>
-    <v-slider
-      thumb-label
-      v-model="id"
-      :max="this.liveData !== null ? this.liveData.data.length - 1 : 0"
-    ></v-slider>
-    <v-btn @click="getLiveData()" depressed small>Play</v-btn>
-    <v-list-item-group v-model="selectFile" color="primary">
-      <v-list-item v-for="(item, index) in fileList" v-bind:key="index">
-        <v-list-item-content>
-          <v-list-item-title v-text="item"></v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-    </v-list-item-group>
-    <h2>{{ showFileTitle }}</h2>
-    <h3>
-      <pre><code id="fileContent" v-html="showFileContent"></code></pre>
-    </h3>
-    <h2>CUIアクティビティ</h2>
-    <h3>
-      <pre><code id="cuiContent" v-html="showCUIContent"></code></pre>
-    </h3> -->
-  </v-container>
+    {{ this.liveData }} -->
+  </div>
 </template>
 
 <style>
-#fileContent,
+html {
+  font-size: 1em;
+}
+
+#player {
+  position: fixed;
+  bottom: 0;
+  /* left: 10px; */
+  width: 95%;
+  /* background: #282c34; */
+}
+
+#fileContent {
+  padding: 1em;
+  color: #abb2bf;
+  background: #282c34;
+  font-size: 1em;
+  word-wrap: break-word;
+}
+
 #cuiContent {
   padding: 1em;
   color: #abb2bf;
   background: #282c34;
-  font-size: 1.5em;
+  font-size: 1em;
+  word-wrap: break-word;
 }
 pre {
   border: none;
@@ -96,7 +159,7 @@ pre {
 }
 #cuiContent {
   display: block;
-  padding: 0.5em 1em 0.5em 3em;
+  /* padding: 0.5em 1em 0.5em 3em; */
   counter-reset: line;
 }
 #cuiContent::before {
@@ -112,7 +175,7 @@ pre {
   box-sizing: border-box;
   color: #777;
   text-align: center;
-  content: attr(cui-content-line-number);
+  /* content: attr(cui-content-line-number); */
 }
 </style>
 
@@ -122,11 +185,13 @@ import hljs from "highlight.js/lib/highlight";
 import shell from "highlight.js/lib/languages/shell";
 import python from "highlight.js/lib/languages/python";
 import plaintext from "highlight.js/lib/languages/plaintext";
+import xml from "highlight.js/lib/languages/xml";
 import "highlight.js/styles/atom-one-dark.css";
 
 hljs.registerLanguage("shell", shell);
 hljs.registerLanguage("python", python);
 hljs.registerLanguage("plaintext", plaintext);
+hljs.registerLanguage("xml", xml);
 
 export default {
   components: {},
@@ -136,15 +201,11 @@ export default {
       id: 0,
       fileContents: {},
       cuiContentLineNumber: "",
-      fileContentLineNumber: ""
+      fileContentLineNumber: "",
+      isYouTubeHidden: false
     };
   },
-  mounted() {
-    // import abc from "highlightjs-line-numbers.js/src/highlightjs-line-numbers.js";
-    // abc.initHighlightingOnLoad();
-    // abc.initLineNumbersOnLoad();
-    // console.log(abc);
-  },
+  mounted() {},
   computed: {
     allFileContents: function() {
       let allFileContents = [];
@@ -154,9 +215,14 @@ export default {
       for (let i = 0; i < this.liveData.data.length; i++) {
         const element = this.liveData.data[i];
         allFileContents.push(element);
-        // console.log(element);
       }
       return allFileContents;
+    },
+    showProjectName: function() {
+      if (this.liveData === null || this.liveData.data[this.id] === undefined) {
+        return "";
+      }
+      return this.liveData.data[this.id].projectName;
     },
     showCommandContent: function() {},
     commandsInAll: function() {
@@ -164,25 +230,13 @@ export default {
       for (let id = 0; id < this.allFileContents.length; id++) {
         const element = this.allFileContents[id];
         const files = element.files;
-        // console.log(element, 111)
-        // console.log(files, 222)
         let fileObj = {};
         for (const [filePath, fileValue] of Object.entries(files)) {
-          // console.log(file, fileValue);
           const commands = fileValue.commands;
           fileObj[filePath] = commands;
-          // console.log(filePath, commands);
-          // fileObj.push({ filepath: commands });
-          // const lang = this.judgeFileLang(path);
-          // const command = this.getCommands(this.commandsList, lang, code);
-          // if (command === null) {
-          //   continue;
-          // }
         }
         commandsInAll[id] = fileObj;
-        // console.log(commandsInAll);
       }
-      // commandsInAll = { 30: { content: "TestTest" } };
       return commandsInAll;
     },
     commandsList: function() {
@@ -197,7 +251,10 @@ export default {
       let fileList = [];
       for (let key in files) {
         // console.log(key);
-        if (key !== this.liveData.data[this.id].projectPath + "/.cui.log") {
+        if (
+          key !== this.liveData.data[this.id].projectName + "/.cui.log" &&
+          key !== this.liveData.data[this.id].projectName + "/README"
+        ) {
           fileList.push(
             key
             // key.replace(
@@ -225,25 +282,29 @@ export default {
 
       const lang = "plaintext";
 
+      // let beforeFileContent = "";
+      // if (this.id >= 1) {
+      //   let beforeFileContents = {};
+      //   for (const [key, value] of Object.entries(
+      //     this.liveData.data[this.id - 1].files
+      //   )) {
+      //     beforeFileContents[key] = value;
+      //   }
+      //   beforeFileContent = beforeFileContents[this.fileList[this.selectFile]];
+      // }
+
       for (const [key, value] of Object.entries(
         this.liveData.data[this.id].files
       )) {
         this.fileContents[key] = value;
       }
       const fileContent = this.fileContents[this.fileList[this.selectFile]];
-      console.log(fileContent, 111);
 
-      // let commands = this.getCommands(
-      //   this.commandsList,
-      //   this.selectFileLang,
-      //   fileContent
-      // );
+      // console.log("before", beforeFileContent.code, "after", fileContent.code);
 
-      // if (commands !== null) {
-      //   // console.log(777)
-      // }
+      const fileContentCodeSplit = fileContent.code.split("\n");
 
-      const lineNumber = fileContent.code.split("\n").length;
+      const lineNumber = fileContentCodeSplit.length;
 
       let fileContentLineNumber = "";
 
@@ -252,26 +313,17 @@ export default {
       }
 
       this.fileContentLineNumber = fileContentLineNumber;
-
+      console.log(fileContent.lang);
       const highlighted = hljs.highlight(fileContent.lang, fileContent.code)
         .value;
       return highlighted;
-      // return;
     },
     showCUIContent: function() {
       if (this.liveData === null || this.liveData.data[this.id] === undefined) {
         return "";
       }
 
-      // console.log(this.liveData.data[this.id].files["test/cui.log"], 987);
-
-      const cuiLogPath = this.liveData.data[this.id].projectPath + "/.cui.log";
-      // console.log(
-      //   this.liveData.data[this.id].files[
-      //     this.liveData.data[this.id].projectPath + "/.cui.log"
-      //   ],
-      //   999
-      // );
+      const cuiLogPath = this.liveData.data[this.id].projectName + "/.cui.log";
 
       if (cuiLogPath === undefined) {
         return "";
@@ -306,25 +358,47 @@ export default {
     showLiveList: function() {
       return this.liveListData;
     },
+    showREADME: function() {
+      if (this.liveData === null || this.liveData.data[this.id] === undefined) {
+        return "";
+      }
+      const readmePath = this.liveData.data[this.id].projectName + "/README";
+
+      const readme = this.liveData.data[this.id].files[readmePath];
+
+      if (readme === undefined) {
+        return "";
+      }
+      const readmeContent = readme.code;
+      return readmeContent;
+    },
     ...mapState({
       liveData: state => state.liveStore.liveData,
       liveListData: state => state.liveStore.liveListData
     })
   },
   created() {
-    this.getLiveData();
-    this.getLiveListData();
+    const queryID = this.$route.query.id;
+    console.log(queryID);
+    this.getLiveData(queryID);
+    // this.getLiveListData();
   },
   methods: {
-    getLiveData() {
+    getLiveData(id) {
       this.$store.dispatch("liveStore/getLiveData", {
-        // id: this.id
+        id: id
       });
     },
     getLiveListData() {
       this.$store.dispatch("liveStore/getLiveListData", {
         // projectPath: this.id
       });
+    },
+    youTubeShow() {
+      this.isYouTubeHidden = false;
+    },
+    youTubeHidden() {
+      this.isYouTubeHidden = true;
     },
     ...mapActions({
       // updateExcelType: "questionStore/updateExcelType"
