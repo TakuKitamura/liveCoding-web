@@ -44,25 +44,27 @@
     <div v-html="$md.render(showREADME)"></div>
     <div id="player">
       <!-- <template v-slot:append> -->
-      <iframe
-        :hidden="isYouTubeHidden"
-        type="text/html"
-        width="640"
-        height="360"
-        src="https://www.youtube.com/embed/M7lc1UVf-VE"
-        frameborder="0"
-      ></iframe>
-      <div>
-        <v-btn
-          v-if="isYouTubeHidden === false"
-          @click="youTubeHidden()"
-          depressed
-          small
-          >動画を隠す</v-btn
-        >
-        <v-btn v-else @click="youTubeShow()" depressed small
-          >動画表示する</v-btn
-        >
+      <div v-if="this.youtubeURL.length !== 0">
+        <iframe
+          :hidden="isYouTubeHidden"
+          type="text/html"
+          width="640"
+          height="360"
+          src="https://www.youtube.com/embed/M7lc1UVf-VE"
+          frameborder="0"
+        ></iframe>
+        <div>
+          <v-btn
+            v-if="isYouTubeHidden === false"
+            @click="youTubeHidden()"
+            depressed
+            small
+            >動画を隠す</v-btn
+          >
+          <v-btn v-else @click="youTubeShow()" depressed small
+            >動画表示する</v-btn
+          >
+        </div>
       </div>
       <v-slider
         v-model="id"
@@ -202,7 +204,8 @@ export default {
       fileContents: {},
       cuiContentLineNumber: "",
       fileContentLineNumber: "",
-      isYouTubeHidden: false
+      isYouTubeHidden: false,
+      youtubeURL: ''
     };
   },
   mounted() {},
@@ -380,7 +383,16 @@ export default {
   created() {
     const queryID = this.$route.query.id;
     console.log(queryID);
-    this.getLiveData(queryID);
+    const youtubeURL = this.$route.query.youtube_url
+    console.log(youtubeURL)
+    if (youtubeURL !== undefined) {
+      this.youtubeURL = youtubeURL
+    }
+
+    if (queryID !== undefined) {
+      this.getLiveData(queryID);
+    }
+
     // this.getLiveListData();
   },
   methods: {
