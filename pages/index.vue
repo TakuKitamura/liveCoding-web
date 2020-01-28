@@ -332,11 +332,10 @@ export default {
         return "";
       }
 
-      if (this.liveData.data[this.id].files[cuiLogPath].code === undefined) {
+      if (this.liveData.data[this.id].files[cuiLogPath] === undefined) {
         return ""
       }
 
-      console.log(this.liveData.data[this.id].files, cuiLogPath, 111)
       let cuiContent = this.liveData.data[this.id].files[cuiLogPath].code.slice(
         0,
         -1
